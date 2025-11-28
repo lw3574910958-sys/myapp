@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.lw</groupId>
         <artifactId>myapp</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
         <relativePath>../pom.xml</relativePath> <!-- 指向父 pom --> <!-- lookup parent from repository -->
     </parent>
 

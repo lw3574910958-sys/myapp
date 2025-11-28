@@ -5,39 +5,180 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-
+    <!-- 项目坐标信息：组织ID、项目ID、版本号(使用属性变量)、打包方式(pom表示这是聚合项目) -->
     <groupId>com.lw</groupId>
     <artifactId>myapp</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <packaging>pom</packaging> <!-- 关键：父项目必须是 pom -->
 
-    <dependencies>
-        <!-- 父项目依赖 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
-
+    <!-- 聚合的子模块 -->
     <modules>
         <!-- 后续子模块会自动加入 -->
-        <module>demo</module>
+        <!--<module>demo</module>-->
+        <module>myapp1</module>
+        <module>myapp-dependencies</module>
     </modules>
+
+    <!-- 项目名称、描述和URL信息 -->
+    <name>${project.artifactId}</name>
+    <description>我的项目</description>
+    <url>https://github.com/lw3574910958-sys/myapp</url>
+
+    <properties>
+        <!-- 主版本号属性定义 -->
+        <revision>1.0.0</revision>
+
+        <!-- Java版本配置 -->
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- 构建插件版本定义 -->
+        <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
+
+        <!-- 关键依赖库版本定义：Lombok、Spring Boot、MapStruct -->
+        <lombok.version>1.18.30</lombok.version>
+        <spring-boot.version>4.0.0</spring-boot.version>
+        <mapstruct.version> 1.5.5.Final</mapstruct.version>
+
+        <!-- 项目构建源编码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <!-- 可选：统一管理子模块依赖版本 -->
     <dependencyManagement>
         <!-- 如果需要，可在这里定义 BOM -->
+        <dependencies>
+            <!-- 导入自定义的依赖管理BOM文件(myapp-dependencies)，实现统一依赖版本控制 -->
+            <dependency>
+                <groupId>com.lw</groupId>
+                <artifactId>myapp-dependencies</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <build>
+        <!-- 插件管理配置 -->
+        <pluginManagement>
+            <plugins>
+                <!-- 单元测试运行插件配置 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+
+                <!-- 编译插件配置 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <!-- Spring Boot配置处理器 -->
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>${spring-boot.version}</version>
+                            </path>
+
+                            <!-- Lombok注解处理器 -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+
+                            <!-- MapStruct映射处理器 -->
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+
+                            <!-- Lombok与MapStruct绑定插件，解决两者兼容性问题 -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <!-- Flatten插件声明 -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!-- Flatten插件详细配置，用于处理多模块项目的版本扁平化 -->
         <plugins>
+            <!-- 统一 revision 版本 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <flattenMode>oss</flattenMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- 使用 huawei / aliyun 的 Maven 源，提升下载速度 -->
+    <repositories>
+        <repository>
+            <id>huaweicloud</id>
+            <name>huawei</name>
+            <url>https://repo.huaweicloud.com/repository/maven/</url>
+        </repository>
+        <repository>
+            <id>aliyun</id>
+            <name>aliyun</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+
+        <!-- 配置Spring官方里程碑和快照仓库，用于获取预发布版本 -->
+        <repository>
+            <id>spring-milestone</id>
+            <name>spring-milestone</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>spring-snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 </project>

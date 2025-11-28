@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    root: info
+  file:
+    path: D:\Project\Git\lw3574910958-sys\myapp\data\logs\demo
+
+spring:
+  application:
+    name: demo
+
+  sql:
+    init:
+      data-locations: classpath:db/data.sql
+      schema-locations: classpath:db/schema.sql
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:demo
+    username: sa
+    password: sa
+
+  devtools:
+    restart:
+      enabled: true  #设置开启热部署
+      additional-paths: src/main/java,src/main/resources  #重启目录
+      exclude: WEB-INF/**,static/**,public/
+  thymeleaf:
+    cache: false  #使用Thymeleaf模板引擎，关闭缓存
+
+  h2:
+    console:
+      enabled: true
+      path: /h2
+      settings:
+        web-allow-others: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  banner:
+    charset: UTF-8
+    location: classpath:banner.txt
+
+debug: false
